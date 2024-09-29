@@ -1,0 +1,24 @@
+# .prettierignore
+
+# Node modules
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Logs
+logs/
+*.log
+
+# Coverage reports
+coverage/
+
+# Environment variables
+.env
+
+# Vite cache
+.vite/
+
+# Miscellaneous
+*.md
