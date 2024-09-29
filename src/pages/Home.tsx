@@ -1,5 +1,5 @@
-// src/pages/Home.tsx
 import React, { useState } from 'react';
+import PatientTable from '../components/PatientTable';
 import { Patient } from '../types';
 
 const Home: React.FC = () => {
@@ -20,7 +20,7 @@ const Home: React.FC = () => {
     },
   ]);
 
-  return <>TODO: Add home view/table</>;
+  return <PatientTable patients={patients} />;
 };
 
 export default Home;
