@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import PatientTable from '../components/PatientTable';
 import { Patient } from '../types';
+import AddPatient from './AddPatient';
 
 const Home: React.FC = () => {
   const [patients, setPatients] = useState<Patient[]>([
@@ -20,7 +22,21 @@ const Home: React.FC = () => {
     },
   ]);
 
-  return <PatientTable patients={patients} />;
+  const addPatient = (patient: Omit<Patient, 'id'>) => {
+    const newPatient: Patient = {
+      id: patients.length ? patients[patients.length - 1].id + 1 : 1,
+      ...patient,
+    };
+    setPatients([...patients, newPatient]);
+    // TODO: Update this to write to db
+  };
+
+  return (
+    <Routes>
+      <Route path="/" element={<PatientTable patients={patients} />} />
+      <Route path="/add" element={<AddPatient addPatient={addPatient} />} />
+    </Routes>
+  );
 };
 
 export default Home;
