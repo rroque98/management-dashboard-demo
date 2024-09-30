@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import PatientTable from '../components/PatientTable';
 import { Patient } from '../types';
 import AddPatient from './AddPatient';
+import EditPatient from './EditPatient';
 
 const Home: React.FC = () => {
   const [patients, setPatients] = useState<Patient[]>([
@@ -31,10 +32,24 @@ const Home: React.FC = () => {
     // TODO: Update this to write to db
   };
 
+  const updatePatient = (updatedPatient: Patient) => {
+    setPatients((prev) =>
+      prev.map((patient) =>
+        patient.id === updatedPatient.id ? updatedPatient : patient
+      )
+    );
+  };
+
   return (
     <Routes>
       <Route path="/" element={<PatientTable patients={patients} />} />
       <Route path="/add" element={<AddPatient addPatient={addPatient} />} />
+      <Route
+        path="/edit/:id"
+        element={
+          <EditPatient patients={patients} updatePatient={updatePatient} />
+        }
+      />
     </Routes>
   );
 };
