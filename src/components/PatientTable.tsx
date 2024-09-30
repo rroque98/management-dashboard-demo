@@ -1,6 +1,6 @@
 import React from 'react';
-import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
-import { Patient } from '../types';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { Address, Patient } from '../types';
 import { Button, Stack } from '@mui/material';
 import { Link } from 'react-router-dom';
 
@@ -18,12 +18,43 @@ const PatientTable: React.FC<PatientTableProps> = ({ patients }) => {
     { field: 'name', headerName: 'Name', flex: 1 },
     { field: 'dob', headerName: 'DOB', flex: 1 },
     { field: 'status', headerName: 'Status', flex: 1 },
-    { field: 'address', headerName: 'Address', flex: 2 },
+    {
+      field: 'addresses',
+      headerName: 'Address',
+      flex: 2,
+      valueGetter: (params: Address[]) => {
+        const address = params[0];
+        const addressLine = address.addressLine2
+          ? `${address.addressLine1} ${address.addressLine2}`
+          : address.addressLine1;
+        return address
+          ? `${addressLine}, ${address.city}, ${address.state} ${address.zip}`
+          : 'N/A';
+      },
+    },
+    {
+      field: 'details',
+      headerName: 'Details',
+      sortable: false,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1}>
+          <Button
+            variant="outlined"
+            size="small"
+            component={Link}
+            to={`/details/${params.row.id}`}
+          >
+            View Details
+          </Button>
+        </Stack>
+      ),
+      flex: 1,
+    },
     {
       field: 'actions',
       headerName: 'Actions',
       sortable: false,
-      renderCell: (params: GridRenderCellParams) => (
+      renderCell: (params) => (
         <Stack direction="row" spacing={1}>
           <Button
             variant="contained"
