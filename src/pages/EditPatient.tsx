@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   TextField,
@@ -8,11 +9,13 @@ import {
   Typography,
   Paper,
 } from '@mui/material';
+import AddressForm from '../components/AddressForm';
 import { Patient } from '../types';
+import { generateUUID } from '../utils';
 
 interface EditPatientProps {
   patients: Patient[];
-  updatePatient: (patient: Patient) => void;
+  updatePatient: (updatedPatient: Patient) => void;
 }
 
 const EditPatient: React.FC<EditPatientProps> = ({
@@ -21,90 +24,115 @@ const EditPatient: React.FC<EditPatientProps> = ({
 }) => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const patientId = Number(id);
+  const patientId = id;
   const patient = patients.find((p) => p.id === patientId);
 
-  const [form, setForm] = useState<Omit<Patient, 'id'>>({
-    name: '',
-    dob: '',
-    status: 'Inquiry',
-    address: '',
+  const methods = useForm<Patient>({
+    defaultValues: {
+      id: patientId,
+      name: '',
+      dob: '',
+      status: 'Inquiry',
+      addresses: [],
+    },
   });
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    control,
+    formState: { errors },
+  } = methods;
 
   useEffect(() => {
     if (patient) {
-      const { name, dob, status, address } = patient;
-      setForm({ name, dob, status, address });
+      reset(patient);
     }
-  }, [patient]);
+  }, [patient, reset]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const onSubmit = (data: Patient) => {
+    const addressesWithId = data.addresses.map((addr) => ({
+      ...addr,
+      id: addr.id || generateUUID(),
+    }));
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (patient) {
-      updatePatient({ id: patient.id, ...form });
-      navigate('/');
-    }
+    const updatedPatient: Patient = {
+      ...data,
+      addresses: addressesWithId,
+    };
+
+    updatePatient(updatedPatient);
+    navigate('/');
   };
 
   if (!patient) {
-    return <Typography variant="h6">Patient not found.</Typography>;
+    return (
+      <Typography
+        variant="h6"
+        color="error"
+        align="center"
+        sx={{ marginTop: 4 }}
+      >
+        Patient not found.
+      </Typography>
+    );
   }
 
   return (
-    <Paper sx={{ padding: 4, maxWidth: 600, margin: '0 auto' }}>
+    <Paper sx={{ padding: 4, maxWidth: 900, margin: '20px auto' }}>
       <Typography variant="h5" gutterBottom>
         Edit Patient
       </Typography>
-      <form onSubmit={handleSubmit}>
-        <Stack spacing={2}>
-          <TextField
-            label="Name"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            label="Date of Birth"
-            name="dob"
-            type="date"
-            value={form.dob}
-            onChange={handleChange}
-            slotProps={{ inputLabel: { shrink: true } }}
-            required
-          />
-          <TextField
-            select
-            label="Status"
-            name="status"
-            value={form.status}
-            onChange={handleChange}
-            required
-          >
-            {['Inquiry', 'Onboarding', 'Active', 'Churned'].map((status) => (
-              <MenuItem key={status} value={status}>
-                {status}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label="Address"
-            name="address"
-            value={form.address}
-            onChange={handleChange}
-            required
-          />
-          <Button type="submit" variant="contained">
-            Update Patient
-          </Button>
-        </Stack>
-      </form>
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Stack spacing={3}>
+            <TextField
+              label="Name"
+              {...register('name', { required: 'Name is required' })}
+              error={!!errors.name}
+              helperText={errors.name?.message}
+              fullWidth
+            />
+            <TextField
+              label="Date of Birth"
+              type="date"
+              {...register('dob', { required: 'Date of Birth is required' })}
+              slotProps={{ inputLabel: { shrink: true } }}
+              error={!!errors.dob}
+              helperText={errors.dob?.message}
+              fullWidth
+            />
+            <Controller
+              name="status"
+              control={control}
+              rules={{ required: 'Status is required' }}
+              render={({ field }) => (
+                <TextField
+                  select
+                  label="Status"
+                  {...field}
+                  error={!!errors.status}
+                  helperText={errors.status?.message}
+                  fullWidth
+                >
+                  {['Inquiry', 'Onboarding', 'Active', 'Churned'].map(
+                    (option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    )
+                  )}
+                </TextField>
+              )}
+            />
+            <AddressForm />
+            <Button type="submit" variant="contained">
+              Update Patient
+            </Button>
+          </Stack>
+        </form>
+      </FormProvider>
     </Paper>
   );
 };
