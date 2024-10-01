@@ -12,7 +12,9 @@ const Home: React.FC = () => {
 
   const addPatient = (patient: Omit<Patient, 'id'>) => {
     const newPatient: Patient = {
-      id: patients.length ? patients[patients.length - 1].id + 1 : 1,
+      id: patients.length
+        ? `${Number(patients[patients.length - 1].id) + 1}`
+        : '1',
       ...patient,
     };
     setPatients([...patients, newPatient]);
