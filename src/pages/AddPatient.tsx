@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useForm, FormProvider } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { Patient } from '../types';
 import {
   TextField,
   Button,
@@ -9,81 +9,103 @@ import {
   Typography,
   Paper,
 } from '@mui/material';
+import AddressForm from '../components/AddressForm';
+import { Patient } from '../types';
+import { generateUUID } from '../utils';
 
 interface AddPatientProps {
-  addPatient: (patient: Omit<Patient, 'id'>) => void;
+  addPatient: (patient: Patient) => void;
 }
 
 const AddPatient: React.FC<AddPatientProps> = ({ addPatient }) => {
   const navigate = useNavigate();
-  const [form, setForm] = useState<Omit<Patient, 'id'>>({
-    name: '',
-    dob: '',
-    status: 'Inquiry',
-    address: '',
+
+  const methods = useForm<Patient>({
+    defaultValues: {
+      id: generateUUID(),
+      name: '',
+      dob: '',
+      status: 'Inquiry',
+      addresses: [
+        {
+          id: generateUUID(),
+          addressLine1: '',
+          addressLine2: '',
+          city: '',
+          state: '',
+          zip: '',
+        },
+      ],
+    },
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = methods;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    addPatient(form);
+  const onSubmit = (data: Patient) => {
+    const addressesWithId = data.addresses.map((addr) => ({
+      ...addr,
+      id: addr.id || generateUUID(),
+    }));
+
+    const patientData: Patient = {
+      ...data,
+      addresses: addressesWithId,
+    };
+
+    addPatient(patientData);
     navigate('/');
   };
 
   return (
-    <Paper sx={{ padding: 4, maxWidth: 600, margin: '0 auto' }}>
+    <Paper sx={{ padding: 4, maxWidth: 900, margin: '20px auto' }}>
       <Typography variant="h5" gutterBottom>
         Add New Patient
       </Typography>
-      <form onSubmit={handleSubmit}>
-        <Stack spacing={2}>
-          <TextField
-            label="Name"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            label="Date of Birth"
-            name="dob"
-            type="date"
-            value={form.dob}
-            onChange={handleChange}
-            slotProps={{ inputLabel: { shrink: true } }}
-            required
-          />
-          <TextField
-            select
-            label="Status"
-            name="status"
-            value={form.status}
-            onChange={handleChange}
-            required
-          >
-            {['Inquiry', 'Onboarding', 'Active', 'Churned'].map((status) => (
-              <MenuItem key={status} value={status}>
-                {status}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label="Address"
-            name="address"
-            value={form.address}
-            onChange={handleChange}
-            required
-          />
-          <Button type="submit" variant="contained">
-            Add Patient
-          </Button>
-        </Stack>
-      </form>
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Stack spacing={3}>
+            <TextField
+              label="Name"
+              {...register('name', { required: 'Name is required' })}
+              error={!!errors.name}
+              helperText={errors.name?.message}
+              fullWidth
+            />
+            <TextField
+              label="Date of Birth"
+              type="date"
+              {...register('dob', { required: 'Date of Birth is required' })}
+              slotProps={{ inputLabel: { shrink: true } }}
+              error={!!errors.dob}
+              helperText={errors.dob?.message}
+              fullWidth
+            />
+            <TextField
+              select
+              label="Status"
+              {...register('status', { required: 'Status is required' })}
+              error={!!errors.status}
+              helperText={errors.status?.message}
+              fullWidth
+            >
+              {['Inquiry', 'Onboarding', 'Active', 'Churned'].map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
+            <AddressForm />
+            <Button type="submit" variant="contained">
+              Add Patient
+            </Button>
+          </Stack>
+        </form>
+      </FormProvider>
     </Paper>
   );
 };

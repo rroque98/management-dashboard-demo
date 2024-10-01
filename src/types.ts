@@ -1,17 +1,16 @@
 export type PatientStatus = 'Inquiry' | 'Onboarding' | 'Active' | 'Churned';
 
 export interface Address {
-  id: number;
+  id: string;
   addressLine1: string;
   addressLine2?: string;
   city: string;
   state: string;
   zip: string;
-  country: string;
 }
 
 export interface Patient {
-  id: number;
+  id: string;
   name: string;
   dob: string;
   status: PatientStatus;
