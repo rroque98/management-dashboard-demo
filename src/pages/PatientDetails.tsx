@@ -10,8 +10,7 @@ interface PatientDetailsProps {
 const PatientDetails: React.FC<PatientDetailsProps> = ({ patients }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const patientId = Number(id);
-  const patient = patients.find((p) => p.id === patientId);
+  const patient = patients.find((p) => p.id === id);
 
   if (!patient) {
     return <Typography variant="h6">Patient not found.</Typography>;
@@ -40,18 +39,12 @@ const PatientDetails: React.FC<PatientDetailsProps> = ({ patients }) => {
                 key={address.id}
                 sx={{ padding: 1, borderBottom: '1px solid #ccc' }}
               >
-                <Typography>
-                  <strong>Address Line 1:</strong> {address.addressLine1}
-                </Typography>
+                <Typography>{address.addressLine1}</Typography>
                 {address.addressLine2 && (
-                  <Typography>
-                    <strong>Address Line 2:</strong> {address.addressLine2}
-                  </Typography>
+                  <Typography>{address.addressLine2}</Typography>
                 )}
                 <Typography>
-                  <strong>City:</strong> {address.city}, <strong>State:</strong>{' '}
-                  {address.state}, <strong>Zip:</strong> {address.zip},{' '}
-                  <strong>Country:</strong> {address.country}
+                  {`${address.city}, ${address.state} ${address.zip}`}
                 </Typography>
               </Box>
             ))
