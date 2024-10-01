@@ -1,7 +1,7 @@
 import React from 'react';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { Address, Patient } from '../types';
-import { Button, Stack } from '@mui/material';
+import { Button, Grid2 } from '@mui/material';
 import { Link } from 'react-router-dom';
 
 interface PatientTableProps {
@@ -37,16 +37,14 @@ const PatientTable: React.FC<PatientTableProps> = ({ patients }) => {
       headerName: 'Details',
       sortable: false,
       renderCell: (params) => (
-        <Stack direction="row" spacing={1}>
-          <Button
-            variant="outlined"
-            size="small"
-            component={Link}
-            to={`/details/${params.row.id}`}
-          >
-            View Details
-          </Button>
-        </Stack>
+        <Button
+          variant="outlined"
+          size="small"
+          component={Link}
+          to={`/details/${params.row.id}`}
+        >
+          View Details
+        </Button>
       ),
       flex: 1,
     },
@@ -55,12 +53,13 @@ const PatientTable: React.FC<PatientTableProps> = ({ patients }) => {
       headerName: 'Actions',
       sortable: false,
       renderCell: (params) => (
-        <Stack direction="row" spacing={1}>
+        <Grid2 direction="row">
           <Button
             variant="contained"
             size="small"
             component={Link}
             to={`/edit/${params.row.id}`}
+            sx={{ mr: 1 }}
           >
             Edit
           </Button>
@@ -72,7 +71,7 @@ const PatientTable: React.FC<PatientTableProps> = ({ patients }) => {
           >
             Delete
           </Button>
-        </Stack>
+        </Grid2>
       ),
       flex: 1,
     },
