@@ -15,4 +15,14 @@ export interface Patient {
   dob: string;
   status: PatientStatus;
   addresses: Address[];
+  customFields?: Record<string, string | number>;
+}
+
+export type CustomFieldType = 'text' | 'number';
+
+export interface CustomFieldConfig {
+  name: string;
+  label: string;
+  type: CustomFieldType;
+  required?: boolean;
 }

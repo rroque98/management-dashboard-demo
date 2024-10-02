@@ -109,3 +109,26 @@ export const testPatients: Patient[] = [
     ],
   },
 ];
+
+import { CustomFieldConfig } from './types';
+
+export const customFieldsConfig: CustomFieldConfig[] = [
+  {
+    name: 'insuranceNumber',
+    label: 'Insurance Number',
+    type: 'text',
+    required: true,
+  },
+  {
+    name: 'primaryCarePhysician',
+    label: 'Primary Care Physician',
+    type: 'text',
+    required: false,
+  },
+  {
+    name: 'lastVisit',
+    label: 'Last Visit (Days Ago)',
+    type: 'number',
+    required: false,
+  },
+];

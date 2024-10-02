@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import {
   TextField,
@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import AddressForm from '../components/AddressForm';
 import { Patient } from '../types';
+import { customFieldsConfig } from '../testPatients';
 import { generateUUID } from '../utils';
 
 interface AddPatientProps {
@@ -43,6 +44,7 @@ const AddPatient: React.FC<AddPatientProps> = ({ addPatient }) => {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = methods;
 
@@ -100,6 +102,31 @@ const AddPatient: React.FC<AddPatientProps> = ({ addPatient }) => {
               ))}
             </TextField>
             <AddressForm />
+            {customFieldsConfig.map((fieldConfig) => (
+              <Controller
+                key={fieldConfig.name}
+                name={`customFields.${fieldConfig.name}`}
+                control={control}
+                rules={
+                  fieldConfig.required
+                    ? { required: `${fieldConfig.label} is required` }
+                    : {}
+                }
+                render={({ field }) => (
+                  <TextField
+                    label={fieldConfig.label}
+                    type={fieldConfig.type}
+                    {...field}
+                    error={!!errors?.customFields?.[fieldConfig.name]}
+                    helperText={
+                      errors?.customFields?.[fieldConfig.name]?.message
+                    }
+                    fullWidth
+                  />
+                )}
+              />
+            ))}
+
             <Button type="submit" variant="contained">
               Add Patient
             </Button>
