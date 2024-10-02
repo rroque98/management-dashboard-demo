@@ -21,7 +21,13 @@ const PatientDetails: React.FC<PatientDetailsProps> = ({ patients }) => {
       <Stack spacing={2}>
         <Typography variant="h5">Patient Details</Typography>
         <Typography>
-          <strong>Name:</strong> {patient.name}
+          <strong>First Name:</strong> {patient.firstName}
+        </Typography>
+        <Typography>
+          <strong>Middle Name:</strong> {patient.middleName}
+        </Typography>
+        <Typography>
+          <strong>Last Name:</strong> {patient.lastName}
         </Typography>
         <Typography>
           <strong>Date of Birth:</strong> {patient.dob}

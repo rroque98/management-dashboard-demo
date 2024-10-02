@@ -11,7 +11,9 @@ export interface Address {
 
 export interface Patient {
   id: string;
-  name: string;
+  firstName: string;
+  middleName?: string;
+  lastName: string;
   dob: string;
   status: PatientStatus;
   addresses: Address[];

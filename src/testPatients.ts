@@ -3,7 +3,8 @@ import { Patient } from './types';
 export const testPatients: Patient[] = [
   {
     id: '1',
-    name: 'Tester 1',
+    firstName: 'Tester',
+    lastName: '1',
     dob: '1985-06-15',
     status: 'Active',
     addresses: [
@@ -26,7 +27,9 @@ export const testPatients: Patient[] = [
   },
   {
     id: '2',
-    name: 'Tester 2',
+    firstName: 'Tester',
+    middleName: 'withMiddle',
+    lastName: '2',
     dob: '1990-09-23',
     status: 'Onboarding',
     addresses: [
@@ -42,7 +45,9 @@ export const testPatients: Patient[] = [
   },
   {
     id: '3',
-    name: 'Tester 3',
+    firstName: 'Tester',
+    middleName: 'withMiddle',
+    lastName: '3',
     dob: '1975-12-05',
     status: 'Churned',
     addresses: [
@@ -72,7 +77,8 @@ export const testPatients: Patient[] = [
   },
   {
     id: '4',
-    name: 'Tester 4',
+    firstName: 'Tester',
+    lastName: '4',
     dob: '1982-03-14',
     status: 'Inquiry',
     addresses: [
@@ -87,7 +93,9 @@ export const testPatients: Patient[] = [
   },
   {
     id: '5',
-    name: 'Tester 5',
+    firstName: 'Tester',
+    middleName: 'S',
+    lastName: '5',
     dob: '1995-07-30',
     status: 'Active',
     addresses: [

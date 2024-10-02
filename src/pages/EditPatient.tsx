@@ -36,7 +36,9 @@ const EditPatient: React.FC<EditPatientProps> = ({
   const methods = useForm<Patient>({
     defaultValues: {
       id: patientId,
-      name: '',
+      firstName: '',
+      middleName: '',
+      lastName: '',
       dob: '',
       status: 'Inquiry',
       addresses: [],
@@ -123,10 +125,24 @@ const EditPatient: React.FC<EditPatientProps> = ({
         <form onSubmit={handleSubmit(onSubmit)}>
           <Stack spacing={3}>
             <TextField
-              label="Name"
-              {...register('name', { required: 'Name is required' })}
-              error={!!errors.name}
-              helperText={errors.name?.message}
+              label="First Name"
+              {...register('firstName', { required: 'First name is required' })}
+              error={!!errors.firstName}
+              helperText={errors.firstName?.message}
+              fullWidth
+            />
+            <TextField
+              label="Middle Name"
+              {...register('middleName')}
+              error={!!errors.middleName}
+              helperText={errors.middleName?.message}
+              fullWidth
+            />
+            <TextField
+              label="Last Name"
+              {...register('lastName', { required: 'Last name is required' })}
+              error={!!errors.lastName}
+              helperText={errors.lastName?.message}
               fullWidth
             />
             <TextField

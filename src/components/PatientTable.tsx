@@ -15,7 +15,9 @@ const PatientTable: React.FC<PatientTableProps> = ({ patients }) => {
   };
 
   const columns: GridColDef[] = [
-    { field: 'name', headerName: 'Name', flex: 1 },
+    { field: 'firstName', headerName: 'First', flex: 1 },
+    { field: 'middleName', headerName: 'Middle', flex: 1 },
+    { field: 'lastName', headerName: 'Last', flex: 1 },
     { field: 'dob', headerName: 'DOB', flex: 1 },
     { field: 'status', headerName: 'Status', flex: 1 },
     {
