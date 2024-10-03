@@ -15,7 +15,7 @@ const CustomFieldsForm: React.FC = () => {
   const {
     customFields,
     loading: loadingCustomFields,
-    error: customFieldError,
+    error: customFieldsError,
   } = useCustomFields();
 
   const {
@@ -28,10 +28,10 @@ const CustomFieldsForm: React.FC = () => {
     return <CircularProgress size={24} />;
   }
 
-  if (customFieldError) {
+  if (customFieldsError) {
     return (
       <Typography color="error" align="center">
-        {customFieldError}
+        {customFieldsError}
       </Typography>
     );
   }

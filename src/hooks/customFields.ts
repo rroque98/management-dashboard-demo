@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { CustomField } from '../types';
 import { getAllCustomFields } from '../firebase/customFields';
 
@@ -7,23 +7,26 @@ const useCustomFields = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchCustomFields = async () => {
-      try {
-        const fields = await getAllCustomFields();
-        setCustomFields(fields);
-      } catch (err) {
-        console.error('Error fetching custom fields:', err);
-        setError(
-          'Failed to load custom fields. Please refresh the page and try again.'
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCustomFields();
+  const fetchCustomFields = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const fields = await getAllCustomFields();
+      setCustomFields(fields);
+    } catch (err) {
+      console.error('Error fetching custom fields:', err);
+      setError(
+        'Failed to load custom fields. Please refresh the page and try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
   }, []);
-  return { customFields, loading, error };
+
+  useEffect(() => {
+    fetchCustomFields();
+  }, [fetchCustomFields]);
+  return { customFields, loading, error, refetch: fetchCustomFields };
 };
 
 export default useCustomFields;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   TextField,
   Button,
@@ -21,18 +21,26 @@ import {
   InputLabel,
   Checkbox,
   FormControlLabel,
+  CircularProgress,
 } from '@mui/material';
 import { Delete, Edit } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import {
   addCustomField,
-  getAllCustomFields,
   updateCustomField,
   deleteCustomField,
 } from '../firebase/customFields';
 import { CustomField } from '../types';
+import useCustomFields from '../hooks/customFields';
 
 const CustomFieldsManagement: React.FC = () => {
+  const {
+    customFields,
+    loading: loadingCustomFields,
+    error: customFieldsError,
+    refetch: refetchCustomFields,
+  } = useCustomFields();
+
   const { register, handleSubmit, control, reset } = useForm<CustomField>({
     defaultValues: {
       label: '',
@@ -41,22 +49,8 @@ const CustomFieldsManagement: React.FC = () => {
     },
   });
 
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [editingField, setEditingField] = useState<CustomField | null>(null);
-
-  useEffect(() => {
-    const fetchCustomFields = async () => {
-      try {
-        const fields = await getAllCustomFields();
-        setCustomFields(fields);
-      } catch (error) {
-        console.error('Error fetching custom fields:', error);
-      }
-    };
-
-    fetchCustomFields();
-  }, []);
 
   const onSubmit = async (data: CustomField) => {
     try {
@@ -65,8 +59,7 @@ const CustomFieldsManagement: React.FC = () => {
       } else {
         await addCustomField({ ...data });
       }
-      const fields = await getAllCustomFields();
-      setCustomFields(fields);
+      await refetchCustomFields();
       reset();
       setIsDialogOpen(false);
       setEditingField(null);
@@ -85,8 +78,7 @@ const CustomFieldsManagement: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this custom field?')) {
       try {
         await deleteCustomField(fieldId);
-        const fields = await getAllCustomFields();
-        setCustomFields(fields);
+        await refetchCustomFields();
       } catch (error) {
         console.error('Error deleting custom field:', error);
       }
@@ -103,13 +95,22 @@ const CustomFieldsManagement: React.FC = () => {
     setIsDialogOpen(true);
   };
 
+  if (loadingCustomFields) {
+    return <CircularProgress size={24} />;
+  }
+
+  if (customFieldsError) {
+    return (
+      <Typography color="error" align="center">
+        {customFieldsError}
+      </Typography>
+    );
+  }
+
   return (
     <Paper sx={{ padding: 4, maxWidth: 800, margin: '20px auto' }}>
       <Stack spacing={3}>
         <Typography variant="h5">Manage Custom Fields</Typography>
-        <Button variant="contained" onClick={handleAddNew}>
-          Add New Custom Field
-        </Button>
         <Table>
           <TableHead>
             <TableRow>
@@ -120,7 +121,7 @@ const CustomFieldsManagement: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {customFields.map((field) => (
+            {customFields?.map((field) => (
               <TableRow key={field.id}>
                 <TableCell>{field.label}</TableCell>
                 <TableCell>
@@ -141,15 +142,11 @@ const CustomFieldsManagement: React.FC = () => {
                 </TableCell>
               </TableRow>
             ))}
-            {!customFields?.length && (
-              <TableRow>
-                <TableCell colSpan={4} align="center">
-                  No custom fields defined.
-                </TableCell>
-              </TableRow>
-            )}
           </TableBody>
         </Table>
+        <Button variant="contained" onClick={handleAddNew}>
+          Add New Custom Field
+        </Button>
       </Stack>
       <Dialog
         open={isDialogOpen}
