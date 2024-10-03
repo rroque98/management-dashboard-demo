@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -8,25 +8,51 @@ import {
   Stack,
   Typography,
   Paper,
+  CircularProgress,
+  Box,
 } from '@mui/material';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase/config';
+import { updatePatientInFirestore } from '../firebase/firestore';
 import AddressForm from '../components/AddressForm';
 import { Patient } from '../types';
 import { generateUUID } from '../utils';
 import { customFieldsConfig } from '../testPatients';
 
-interface EditPatientProps {
-  patients: Patient[];
-  updatePatient: (updatedPatient: Patient) => void;
-}
-
-const EditPatient: React.FC<EditPatientProps> = ({
-  patients,
-  updatePatient,
-}) => {
-  const navigate = useNavigate();
+const EditPatient: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const patientId = id;
-  const patient = patients.find((p) => p.id === patientId);
+  const navigate = useNavigate();
+  const [patient, setPatient] = useState<Patient | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPatient = async () => {
+      if (!id) {
+        setError('No patient ID provided.');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const patientRef = doc(db, 'patients', id);
+        const patientSnap = await getDoc(patientRef);
+
+        if (patientSnap.exists()) {
+          const data = patientSnap.data() as Patient;
+          setPatient({ ...data, id: patientSnap.id });
+        } else {
+          setError('Patient not found.');
+        }
+      } catch (err) {
+        setError('Failed to fetch patient details. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPatient();
+  }, [id]);
 
   const defaultCustomFields: Record<string, string | number> = {};
   customFieldsConfig.forEach((field) => {
@@ -35,7 +61,7 @@ const EditPatient: React.FC<EditPatientProps> = ({
 
   const methods = useForm<Patient>({
     defaultValues: {
-      id: patientId,
+      id: patient?.id || '',
       firstName: '',
       middleName: '',
       lastName: '',
@@ -88,20 +114,39 @@ const EditPatient: React.FC<EditPatientProps> = ({
     }
   }, [patient, reset, customFieldsConfig]);
 
-  const onSubmit = (data: Patient) => {
-    const addressesWithId = data.addresses.map((addr) => ({
-      ...addr,
-      id: addr.id || generateUUID(),
-    }));
-
-    const updatedPatient: Patient = {
-      ...data,
-      addresses: addressesWithId,
-    };
-
-    updatePatient(updatedPatient);
-    navigate('/');
+  const onSubmit = async (data: Patient) => {
+    try {
+      // Assign unique IDs to each address if not already assigned
+      const addressesWithId = data.addresses.map((addr) => ({
+        ...addr,
+        id: addr.id || generateUUID(),
+      }));
+      const updatedPatient: Patient = {
+        ...data,
+        addresses: addressesWithId,
+      };
+      await updatePatientInFirestore(updatedPatient.id, updatedPatient);
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to update patient:', error);
+    }
   };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Typography color="error" align="center" sx={{ marginTop: 4 }}>
+        {error}
+      </Typography>
+    );
+  }
 
   if (!patient) {
     return (

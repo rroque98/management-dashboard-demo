@@ -8,7 +8,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Patient Management Dashboard
+            Patient Management Dashboard Demo
           </Typography>
           <Button color="inherit" component={Link} to="/">
             Home

@@ -9,21 +9,17 @@ import {
   Typography,
   Paper,
 } from '@mui/material';
+import { addPatientToFirestore } from '../firebase/firestore';
 import AddressForm from '../components/AddressForm';
 import { Patient } from '../types';
 import { customFieldsConfig } from '../testPatients';
 import { generateUUID } from '../utils';
 
-interface AddPatientProps {
-  addPatient: (patient: Patient) => void;
-}
-
-const AddPatient: React.FC<AddPatientProps> = ({ addPatient }) => {
+const AddPatient: React.FC = () => {
   const navigate = useNavigate();
 
   const methods = useForm<Patient>({
     defaultValues: {
-      id: generateUUID(),
       firstName: '',
       middleName: '',
       lastName: '',
@@ -31,7 +27,6 @@ const AddPatient: React.FC<AddPatientProps> = ({ addPatient }) => {
       status: 'Inquiry',
       addresses: [
         {
-          id: generateUUID(),
           addressLine1: '',
           addressLine2: '',
           city: '',
@@ -45,24 +40,26 @@ const AddPatient: React.FC<AddPatientProps> = ({ addPatient }) => {
   const {
     register,
     handleSubmit,
-    reset,
     control,
     formState: { errors },
   } = methods;
 
-  const onSubmit = (data: Patient) => {
-    const addressesWithId = data.addresses.map((addr) => ({
-      ...addr,
-      id: addr.id || generateUUID(),
-    }));
-
-    const patientData: Patient = {
-      ...data,
-      addresses: addressesWithId,
-    };
-
-    addPatient(patientData);
-    navigate('/');
+  const onSubmit = async (data: Patient) => {
+    try {
+      // Assign unique IDs to each address if not already assigned
+      const addressesWithId = data.addresses.map((addr) => ({
+        ...addr,
+        id: addr.id || generateUUID(),
+      }));
+      const patientData: Patient = {
+        ...data,
+        addresses: addressesWithId,
+      };
+      await addPatientToFirestore(patientData);
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to add patient:', error);
+    }
   };
 
   return (

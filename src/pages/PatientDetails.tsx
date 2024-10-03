@@ -1,16 +1,67 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Typography, Button, Stack, Paper, Box } from '@mui/material';
+import {
+  Typography,
+  Button,
+  Stack,
+  Paper,
+  Box,
+  CircularProgress,
+} from '@mui/material';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import { Patient } from '../types';
 
-interface PatientDetailsProps {
-  patients: Patient[];
-}
-
-const PatientDetails: React.FC<PatientDetailsProps> = ({ patients }) => {
+const PatientDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const patient = patients.find((p) => p.id === id);
+  const [patient, setPatient] = useState<Patient | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPatient = async () => {
+      if (!id) {
+        setError('No patient ID provided.');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const patientRef = doc(db, 'patients', id);
+        const patientSnap = await getDoc(patientRef);
+
+        if (patientSnap.exists()) {
+          const data = patientSnap.data() as Patient;
+          setPatient({ ...data, id: patientSnap.id });
+        } else {
+          setError('Patient not found.');
+        }
+      } catch (err) {
+        setError('Failed to fetch patient details. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPatient();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Typography color="error" align="center" sx={{ marginTop: 4 }}>
+        {error}
+      </Typography>
+    );
+  }
 
   if (!patient) {
     return <Typography variant="h6">Patient not found.</Typography>;
