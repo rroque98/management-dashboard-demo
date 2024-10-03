@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import {
   Box,
@@ -8,28 +8,15 @@ import {
   Typography,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { getPatients } from '../firebase/patients';
-import { Address, Patient } from '../types';
+import { Address } from '../types';
+import usePatients from '../hooks/patients';
 
 const PatientTable: React.FC = () => {
-  const [patients, setPatients] = useState<Patient[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        const fetchedPatients = await getPatients();
-        setPatients(fetchedPatients);
-      } catch (err) {
-        setError('Failed to fetch patients. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPatients();
-  }, []);
+  const {
+    patients,
+    loading: loadingPatients,
+    error: patientsError,
+  } = usePatients();
 
   const handleDelete = (id: number) => {
     // TODO: Implement delete. Should deleting action even be a part of the main dashboard view?
@@ -101,7 +88,7 @@ const PatientTable: React.FC = () => {
     },
   ];
 
-  if (loading) {
+  if (loadingPatients) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
         <CircularProgress />
@@ -109,10 +96,10 @@ const PatientTable: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (patientsError) {
     return (
       <Typography color="error" align="center" sx={{ marginTop: 4 }}>
-        {error}
+        {patientsError}
       </Typography>
     );
   }
