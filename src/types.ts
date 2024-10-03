@@ -17,14 +17,16 @@ export interface Patient {
   dob: string;
   status: PatientStatus;
   addresses: Address[];
-  customFields?: Record<string, string | number>;
+  customFieldValues: {
+    [customFieldId: string]: string | number | boolean | null;
+  };
 }
 
-export type CustomFieldType = 'text' | 'number';
+export type CustomFieldType = 'string' | 'number' | 'date' | 'boolean';
 
-export interface CustomFieldConfig {
-  name: string;
+export interface CustomField {
+  id: string;
   label: string;
-  type: CustomFieldType;
-  required?: boolean;
+  fieldType: CustomFieldType;
+  required: boolean;
 }

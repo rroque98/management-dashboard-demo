@@ -8,7 +8,7 @@ import {
   Typography,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { getPatientsFromFirestore } from '../firebase/firestore';
+import { getPatients } from '../firebase/patients';
 import { Address, Patient } from '../types';
 
 const PatientTable: React.FC = () => {
@@ -19,7 +19,7 @@ const PatientTable: React.FC = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const fetchedPatients = await getPatientsFromFirestore();
+        const fetchedPatients = await getPatients();
         setPatients(fetchedPatients);
       } catch (err) {
         setError('Failed to fetch patients. Please try again later.');
