@@ -9,66 +9,33 @@ import {
   Typography,
   Paper,
   CircularProgress,
-  Box,
 } from '@mui/material';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
-import { updatePatientInFirestore } from '../firebase/firestore';
+import { updatePatient, getPatientById } from '../firebase/patients';
 import AddressForm from '../components/AddressForm';
-import { Patient } from '../types';
+import { CustomField, Patient } from '../types';
 import { generateUUID } from '../utils';
-import { customFieldsConfig } from '../testPatients';
+import CustomFieldsForm from '../components/CustomFieldsForm';
+import { getAllCustomFields } from '../firebase/customFields';
 
 const EditPatient: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [patient, setPatient] = useState<Patient | null>(null);
+  const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadingCustomFields, setLoadingCustomFields] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchPatient = async () => {
-      if (!id) {
-        setError('No patient ID provided.');
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const patientRef = doc(db, 'patients', id);
-        const patientSnap = await getDoc(patientRef);
-
-        if (patientSnap.exists()) {
-          const data = patientSnap.data() as Patient;
-          setPatient({ ...data, id: patientSnap.id });
-        } else {
-          setError('Patient not found.');
-        }
-      } catch (err) {
-        setError('Failed to fetch patient details. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPatient();
-  }, [id]);
-
-  const defaultCustomFields: Record<string, string | number> = {};
-  customFieldsConfig.forEach((field) => {
-    defaultCustomFields[field.name] = field.type === 'number' ? 0 : '';
-  });
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const [submitting, setSubmitting] = useState<boolean>(false);
 
   const methods = useForm<Patient>({
     defaultValues: {
-      id: patient?.id || '',
+      id: '',
       firstName: '',
       middleName: '',
       lastName: '',
       dob: '',
       status: 'Inquiry',
       addresses: [],
-      customFields: defaultCustomFields,
+      customFieldValues: {},
     },
   });
 
@@ -81,74 +48,66 @@ const EditPatient: React.FC = () => {
   } = methods;
 
   useEffect(() => {
-    if (patient) {
-      const patientData: Patient = {
-        ...patient,
-        status: patient.status || 'Inquiry',
-        addresses:
-          patient.addresses.length > 0
-            ? patient.addresses
-            : [
-                {
-                  id: generateUUID(),
-                  addressLine1: '',
-                  addressLine2: '',
-                  city: '',
-                  state: '',
-                  zip: '',
-                },
-              ],
-        customFields: {},
-      };
+    const fetchData = async () => {
+      if (!id) {
+        setError('No patient ID provided.');
+        setLoading(false);
+        return;
+      }
 
-      // Init customFields with existing data or default values
-      const initCustomFields: Record<string, string | number> = {};
-      customFieldsConfig.forEach((field) => {
-        const defaultValue = field.type === 'number' ? 0 : '';
-        initCustomFields[field.name] =
-          patient?.customFields?.[field.name] ?? defaultValue;
-      });
-      patientData.customFields = initCustomFields;
+      try {
+        const [patientData, fields] = await Promise.all([
+          getPatientById(id),
+          getAllCustomFields(),
+        ]);
 
-      reset(patientData);
-    }
-  }, [patient, reset, customFieldsConfig]);
+        setCustomFields(fields);
+        reset(patientData);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError('Failed to fetch patient details.');
+      } finally {
+        setLoading(false);
+        setLoadingCustomFields(false);
+      }
+    };
+
+    fetchData();
+  }, [id, reset]);
 
   const onSubmit = async (data: Patient) => {
+    setSubmitting(true);
     try {
-      // Assign unique IDs to each address if not already assigned
-      const addressesWithId = data.addresses.map((addr) => ({
-        ...addr,
-        id: addr.id || generateUUID(),
+      // Ensure all addresses have unique IDs
+      const processedAddresses = data.addresses.map((address) => ({
+        ...address,
+        id: address.id || generateUUID(),
       }));
-      const updatedPatient: Patient = {
+
+      const updatedPatientData = {
         ...data,
-        addresses: addressesWithId,
+        addresses: processedAddresses,
       };
-      await updatePatientInFirestore(updatedPatient.id, updatedPatient);
+
+      await updatePatient(updatedPatientData);
       navigate('/');
     } catch (error) {
       console.error('Failed to update patient:', error);
+      setError('Failed to update patient. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  if (loading) {
+  if (loading || loadingCustomFields) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Typography color="error" align="center" sx={{ marginTop: 4 }}>
-        {error}
+      <Typography variant="h6" align="center" sx={{ marginTop: 4 }}>
+        Loading...
       </Typography>
     );
   }
 
-  if (!patient) {
+  if (error) {
     return (
       <Typography
         variant="h6"
@@ -156,7 +115,7 @@ const EditPatient: React.FC = () => {
         align="center"
         sx={{ marginTop: 4 }}
       >
-        Patient not found.
+        {error}
       </Typography>
     );
   }
@@ -223,32 +182,14 @@ const EditPatient: React.FC = () => {
               )}
             />
             <AddressForm />
-            {customFieldsConfig.map((fieldConfig) => (
-              <Controller
-                key={fieldConfig.name}
-                name={`customFields.${fieldConfig.name}`}
-                control={control}
-                rules={
-                  fieldConfig.required
-                    ? { required: `${fieldConfig.label} is required` }
-                    : {}
-                }
-                render={({ field }) => (
-                  <TextField
-                    label={fieldConfig.label}
-                    type={fieldConfig.type}
-                    {...field}
-                    error={!!errors?.customFields?.[fieldConfig.name]}
-                    helperText={
-                      errors?.customFields?.[fieldConfig.name]?.message
-                    }
-                    fullWidth
-                  />
-                )}
-              />
-            ))}
-            <Button type="submit" variant="contained">
-              Update Patient
+            <CustomFieldsForm customFields={customFields} />
+            {error && (
+              <Typography color="error" align="center">
+                {error}
+              </Typography>
+            )}
+            <Button type="submit" variant="contained" disabled={submitting}>
+              {submitting ? <CircularProgress size={24} /> : 'Update Patient'}
             </Button>
           </Stack>
         </form>

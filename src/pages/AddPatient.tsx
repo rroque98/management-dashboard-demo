@@ -1,5 +1,5 @@
-import React from 'react';
-import { useForm, FormProvider, Controller } from 'react-hook-form';
+import React, { useEffect, useState } from 'react';
+import { useForm, FormProvider } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import {
   TextField,
@@ -8,15 +8,21 @@ import {
   Stack,
   Typography,
   Paper,
+  CircularProgress,
 } from '@mui/material';
-import { addPatientToFirestore } from '../firebase/firestore';
+import { addPatient } from '../firebase/patients';
 import AddressForm from '../components/AddressForm';
-import { Patient } from '../types';
-import { customFieldsConfig } from '../testPatients';
+import { CustomField, Patient } from '../types';
 import { generateUUID } from '../utils';
+import CustomFieldsForm from '../components/CustomFieldsForm';
+import { getAllCustomFields } from '../firebase/customFields';
 
 const AddPatient: React.FC = () => {
   const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const [loadingCustomFields, setLoadingCustomFields] = useState<boolean>(true);
 
   const methods = useForm<Patient>({
     defaultValues: {
@@ -34,17 +40,32 @@ const AddPatient: React.FC = () => {
           zip: '',
         },
       ],
+      customFieldValues: {},
     },
   });
 
   const {
     register,
     handleSubmit,
-    control,
     formState: { errors },
   } = methods;
 
+  useEffect(() => {
+    const fetchCustomFields = async () => {
+      try {
+        const fields = await getAllCustomFields();
+        setCustomFields(fields);
+      } catch (err) {
+        console.error('Error fetching custom fields:', err);
+      } finally {
+        setLoadingCustomFields(false);
+      }
+    };
+    fetchCustomFields();
+  }, []);
+
   const onSubmit = async (data: Patient) => {
+    setSubmitting(true);
     try {
       // Assign unique IDs to each address if not already assigned
       const addressesWithId = data.addresses.map((addr) => ({
@@ -55,12 +76,22 @@ const AddPatient: React.FC = () => {
         ...data,
         addresses: addressesWithId,
       };
-      await addPatientToFirestore(patientData);
+      await addPatient(patientData);
       navigate('/');
     } catch (error) {
       console.error('Failed to add patient:', error);
+      setError('Failed to add patient. Please try again.');
     }
+    setSubmitting(false);
   };
+
+  if (loadingCustomFields) {
+    return (
+      <Typography variant="h6" align="center" sx={{ marginTop: 4 }}>
+        Loading custom fields...
+      </Typography>
+    );
+  }
 
   return (
     <Paper sx={{ padding: 4, maxWidth: 900, margin: '20px auto' }}>
@@ -115,33 +146,14 @@ const AddPatient: React.FC = () => {
               ))}
             </TextField>
             <AddressForm />
-            {customFieldsConfig.map((fieldConfig) => (
-              <Controller
-                key={fieldConfig.name}
-                name={`customFields.${fieldConfig.name}`}
-                control={control}
-                rules={
-                  fieldConfig.required
-                    ? { required: `${fieldConfig.label} is required` }
-                    : {}
-                }
-                render={({ field }) => (
-                  <TextField
-                    label={fieldConfig.label}
-                    type={fieldConfig.type}
-                    {...field}
-                    error={!!errors?.customFields?.[fieldConfig.name]}
-                    helperText={
-                      errors?.customFields?.[fieldConfig.name]?.message
-                    }
-                    fullWidth
-                  />
-                )}
-              />
-            ))}
-
-            <Button type="submit" variant="contained">
-              Add Patient
+            <CustomFieldsForm customFields={customFields} />
+            {error && (
+              <Typography color="error" align="center">
+                {error}
+              </Typography>
+            )}
+            <Button type="submit" variant="contained" disabled={submitting}>
+              {submitting ? <CircularProgress size={24} /> : 'Add Patient'}
             </Button>
           </Stack>
         </form>
