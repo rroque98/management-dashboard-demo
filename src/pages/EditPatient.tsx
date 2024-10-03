@@ -12,18 +12,15 @@ import {
 } from '@mui/material';
 import { updatePatient, getPatientById } from '../firebase/patients';
 import AddressForm from '../components/AddressForm';
-import { CustomField, Patient } from '../types';
+import { Patient } from '../types';
 import { generateUUID } from '../utils';
 import CustomFieldsForm from '../components/CustomFieldsForm';
-import { getAllCustomFields } from '../firebase/customFields';
 
 const EditPatient: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState<boolean>(true);
-  const [loadingCustomFields, setLoadingCustomFields] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   const methods = useForm<Patient>({
@@ -56,19 +53,13 @@ const EditPatient: React.FC = () => {
       }
 
       try {
-        const [patientData, fields] = await Promise.all([
-          getPatientById(id),
-          getAllCustomFields(),
-        ]);
-
-        setCustomFields(fields);
+        const patientData = await getPatientById(id);
         reset(patientData);
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to fetch patient details.');
       } finally {
         setLoading(false);
-        setLoadingCustomFields(false);
       }
     };
 
@@ -99,7 +90,7 @@ const EditPatient: React.FC = () => {
     }
   };
 
-  if (loading || loadingCustomFields) {
+  if (loading) {
     return (
       <Typography variant="h6" align="center" sx={{ marginTop: 4 }}>
         Loading...
@@ -182,15 +173,15 @@ const EditPatient: React.FC = () => {
               )}
             />
             <AddressForm />
-            <CustomFieldsForm customFields={customFields} />
+            <CustomFieldsForm />
+            <Button type="submit" variant="contained" disabled={submitting}>
+              {submitting ? <CircularProgress size={24} /> : 'Update Patient'}
+            </Button>
             {error && (
               <Typography color="error" align="center">
                 {error}
               </Typography>
             )}
-            <Button type="submit" variant="contained" disabled={submitting}>
-              {submitting ? <CircularProgress size={24} /> : 'Update Patient'}
-            </Button>
           </Stack>
         </form>
       </FormProvider>

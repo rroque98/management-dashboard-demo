@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -10,19 +10,16 @@ import {
   Paper,
   CircularProgress,
 } from '@mui/material';
-import { addPatient } from '../firebase/patients';
 import AddressForm from '../components/AddressForm';
-import { CustomField, Patient } from '../types';
-import { generateUUID } from '../utils';
 import CustomFieldsForm from '../components/CustomFieldsForm';
-import { getAllCustomFields } from '../firebase/customFields';
+import { addPatient } from '../firebase/patients';
+import { Patient } from '../types';
+import { generateUUID } from '../utils';
 
 const AddPatient: React.FC = () => {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
-  const [loadingCustomFields, setLoadingCustomFields] = useState<boolean>(true);
 
   const methods = useForm<Patient>({
     defaultValues: {
@@ -50,20 +47,6 @@ const AddPatient: React.FC = () => {
     formState: { errors },
   } = methods;
 
-  useEffect(() => {
-    const fetchCustomFields = async () => {
-      try {
-        const fields = await getAllCustomFields();
-        setCustomFields(fields);
-      } catch (err) {
-        console.error('Error fetching custom fields:', err);
-      } finally {
-        setLoadingCustomFields(false);
-      }
-    };
-    fetchCustomFields();
-  }, []);
-
   const onSubmit = async (data: Patient) => {
     setSubmitting(true);
     try {
@@ -84,14 +67,6 @@ const AddPatient: React.FC = () => {
     }
     setSubmitting(false);
   };
-
-  if (loadingCustomFields) {
-    return (
-      <Typography variant="h6" align="center" sx={{ marginTop: 4 }}>
-        Loading custom fields...
-      </Typography>
-    );
-  }
 
   return (
     <Paper sx={{ padding: 4, maxWidth: 900, margin: '20px auto' }}>
@@ -146,15 +121,15 @@ const AddPatient: React.FC = () => {
               ))}
             </TextField>
             <AddressForm />
-            <CustomFieldsForm customFields={customFields} />
+            <CustomFieldsForm />
+            <Button type="submit" variant="contained" disabled={submitting}>
+              {submitting ? <CircularProgress size={24} /> : 'Add Patient'}
+            </Button>
             {error && (
               <Typography color="error" align="center">
                 {error}
               </Typography>
             )}
-            <Button type="submit" variant="contained" disabled={submitting}>
-              {submitting ? <CircularProgress size={24} /> : 'Add Patient'}
-            </Button>
           </Stack>
         </form>
       </FormProvider>

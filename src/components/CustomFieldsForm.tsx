@@ -6,24 +6,37 @@ import {
   Paper,
   FormControlLabel,
   Checkbox,
+  CircularProgress,
 } from '@mui/material';
 import { useFormContext, Controller } from 'react-hook-form';
-import { CustomField } from '../types';
+import useCustomFields from '../hooks/customFields';
 
-interface CustomFieldsFormProps {
-  customFields: CustomField[];
-}
+const CustomFieldsForm: React.FC = () => {
+  const {
+    customFields,
+    loading: loadingCustomFields,
+    error: customFieldError,
+  } = useCustomFields();
 
-const CustomFieldsForm: React.FC<CustomFieldsFormProps> = ({
-  customFields,
-}) => {
   const {
     register,
     control,
     formState: { errors },
   } = useFormContext();
 
-  if (customFields.length === 0) {
+  if (loadingCustomFields) {
+    return <CircularProgress size={24} />;
+  }
+
+  if (customFieldError) {
+    return (
+      <Typography color="error" align="center">
+        {customFieldError}
+      </Typography>
+    );
+  }
+
+  if (!customFields?.length) {
     return null;
   }
 
