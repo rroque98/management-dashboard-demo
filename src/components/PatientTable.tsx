@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import {
   Box,
@@ -24,6 +24,11 @@ const PatientTable: React.FC = () => {
     loading: loadingCustomFields,
     error: customFieldsError,
   } = useCustomFields();
+
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10,
+  });
 
   const handleDelete = (id: number) => {
     // TODO: Implement delete. Should deleting action even be a part of the main dashboard view?
@@ -167,7 +172,15 @@ const PatientTable: React.FC = () => {
 
   return (
     <div style={{ height: 600, width: '100%' }}>
-      <DataGrid rows={patients} columns={columns} />
+      <DataGrid
+        rows={patients}
+        columns={columns}
+        pagination
+        paginationMode="client"
+        paginationModel={paginationModel}
+        onPaginationModelChange={(newModel) => setPaginationModel(newModel)}
+        pageSizeOptions={[10, 25, 50, 100]}
+      />
     </div>
   );
 };
