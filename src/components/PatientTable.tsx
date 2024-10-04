@@ -11,12 +11,16 @@ import { Link } from 'react-router-dom';
 import { Address, Patient } from '../types';
 import usePatients from '../hooks/usePatients';
 import useCustomFields from '../hooks/useCustomFields';
+import SuccessSnackbar from './SuccessSnackbar';
+import DeleteConfirmationDialog from './DeleteConfirmationDialog';
+import { deletePatient } from '../firebase/patients';
 
 const PatientTable: React.FC = () => {
   const {
     patients,
     loading: loadingPatients,
     error: patientsError,
+    refetch: refetchPatients,
   } = usePatients();
 
   const {
@@ -30,9 +34,56 @@ const PatientTable: React.FC = () => {
     pageSize: 10,
   });
 
-  const handleDelete = (id: number) => {
-    // TODO: Implement delete. Should deleting action even be a part of the main dashboard view?
-    console.log('deleting patient with id: ', id);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>(
+    'success'
+  );
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteClick = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedPatient) return;
+
+    setDeleting(true);
+    try {
+      await deletePatient(selectedPatient.id);
+      setSnackbarMessage('Patient deleted successfully.');
+      setSnackbarSeverity('success');
+      setOpenSnackbar(true);
+      setOpenDeleteDialog(false);
+      setSelectedPatient(null);
+      refetchPatients();
+    } catch (error: any) {
+      setSnackbarMessage(error.message || 'Failed to delete patient.');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+      setOpenDeleteDialog(false);
+      setSelectedPatient(null);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setOpenDeleteDialog(false);
+    setSelectedPatient(null);
+  };
+
+  const handleCloseSnackbar = (
+    _?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackbar(false);
   };
 
   const standardColumns: GridColDef[] = [
@@ -146,7 +197,7 @@ const PatientTable: React.FC = () => {
             variant="outlined"
             color="error"
             size="small"
-            onClick={() => handleDelete(params.row.id)}
+            onClick={() => handleDeleteClick(params.row)}
           >
             Delete
           </Button>
@@ -195,6 +246,23 @@ const PatientTable: React.FC = () => {
             overflowX: 'auto',
           },
         }}
+      />
+      <DeleteConfirmationDialog
+        open={openDeleteDialog}
+        patientName={
+          selectedPatient
+            ? `${selectedPatient.firstName} ${selectedPatient.lastName}`
+            : ''
+        }
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        deleting={deleting}
+      />
+      <SuccessSnackbar
+        open={openSnackbar}
+        message={snackbarMessage}
+        severity={snackbarSeverity}
+        onClose={handleCloseSnackbar}
       />
     </Box>
   );

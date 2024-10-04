@@ -6,6 +6,7 @@ import {
   getDoc,
   updateDoc,
   doc,
+  deleteDoc,
 } from 'firebase/firestore';
 import { Patient } from '../types';
 
@@ -75,4 +76,19 @@ export const updatePatient = async (patient: Patient): Promise<void> => {
     addresses: patient.addresses,
     customFieldValues: patient.customFieldValues,
   });
+};
+
+/**
+ * Deletes a patient document from Firestore by ID.
+ * @param id - The ID of the patient to delete.
+ * @throws Will throw an error if the deletion fails.
+ */
+export const deletePatient = async (id: string): Promise<void> => {
+  try {
+    const patientRef = doc(db, 'patients', id);
+    await deleteDoc(patientRef);
+  } catch (error) {
+    console.error('Error deleting patient:', error);
+    throw new Error('Failed to delete patient. Please try again.');
+  }
 };
