@@ -1,50 +1,73 @@
-# React + TypeScript + Vite
+# Management Dashboard Demo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project is for demoing/testing purposes to demonstrate the integration of authentication, data management, and dynamic form handling in a web app for managing records. It is not meant to be used by real users with real records and not meant for reuse.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Management:**
+  - View a comprehensive list of records in a paginated table format.
+  - Add/edit/delete records with standard and custom fields.
+  - Detailed view of individual records, including custom attributes.
 
-## Expanding the ESLint configuration
+- **Custom Fields Management:**
+  - Dynamically create and manage custom fields to capture additional information.
+  - Flexible handling of various field types (e.g., string, number, boolean, date).
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- **Global Notifications:**
+  - Real-time feedback using a global notification system for actions like login, logout, data submission, and error handling.
 
-- Configure the top-level `parserOptions` property like this:
+- **User Authentication:**
+  - Email/Password registration and login support via firebase
+  - Protected routes to prevent unauthenticated access
+  - User-friendly login and registration forms with validation and feedback
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Technologies Used
+
+- **Frontend:**
+  - [React](https://reactjs.org/) with TypeScript
+  - [Vite](https://vitejs.dev/) for fast development and build
+  - [React Router](https://reactrouter.com/) for client-side routing
+  - [Material-UI](https://mui.com/) for UI components and styling
+  - [React Hook Form](https://react-hook-form.com/) for form management and validation
+
+- **Backend & Services:**
+  - [Firebase](https://firebase.google.com/) for authentication and Firestore database
+
+## Setup
+
+### 1. **Clone the Repository and install dependencies**
+
+```bash
+git clone https://github.com/rroque98/management-dashboard-demo.git
+cd management-dashboard-demo
+npm install
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+### 2. **Configure your firebase firestore and auth**
+Create a Firebase Project, set up Firestore, and enable Authentication via Email/Password in the Firebase Console. Refer to the Firebase docs to learn about secruity considerations and how to configure appropriate security rules.
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+Use the `.env.example` template to create a `.env` file in the root directory and add your Firebase configuration.
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+### 3. **Run the App**
+
+```bash
+npm run dev
 ```
+
+For local testing, navigate to `http://localhost:5173/`
+
+### 4. **Authentication**
+
+#### Register a New User
+
+1. **Navigate** to the **Register** page.
+2. Fill out the registration form with a valid email and password.
+3. Upon successful registration, you'll be redirected to the main dashboard view.
+
+#### Login
+
+If you already have an account, **Enter** your registered email and password to access the dashboard and management functionality.
+
+#### Logout
+
+**Click** the **Logout** button in the header to sign out of the dashboard.
