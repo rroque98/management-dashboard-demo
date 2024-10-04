@@ -11,6 +11,7 @@ import {
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { Patient } from '../types';
+import useCustomFields from '../hooks/useCustomFields';
 
 const PatientDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +19,12 @@ const PatientDetails: React.FC = () => {
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const {
+    customFields,
+    loading: loadingCustomFields,
+    error: customFieldsError,
+  } = useCustomFields();
 
   useEffect(() => {
     const fetchPatient = async () => {
@@ -47,7 +54,7 @@ const PatientDetails: React.FC = () => {
     fetchPatient();
   }, [id]);
 
-  if (loading) {
+  if (loading || loadingCustomFields) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
         <CircularProgress />
@@ -55,7 +62,7 @@ const PatientDetails: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (error || customFieldsError) {
     return (
       <Typography color="error" align="center" sx={{ marginTop: 4 }}>
         {error}
@@ -105,6 +112,46 @@ const PatientDetails: React.FC = () => {
                 </Typography>
               </Box>
             ))
+          )}
+        </Box>
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="h6" gutterBottom>
+            Custom Fields
+          </Typography>
+          {customFields && customFields.length > 0 ? (
+            customFields.map((field) => {
+              const value = patient?.customFieldValues?.[field.id];
+              let displayValue: string | number | boolean = 'N/A';
+              if (value !== undefined && value !== null) {
+                switch (field.fieldType) {
+                  case 'boolean':
+                    displayValue = value ? 'Yes' : 'No';
+                    break;
+                  case 'date':
+                    if (typeof value === 'string') {
+                      displayValue = new Date(value).toLocaleDateString();
+                    } else {
+                      displayValue = value;
+                    }
+                    break;
+                  case 'number':
+                    displayValue = value;
+                    break;
+                  default:
+                    displayValue = value.toString();
+                }
+              }
+
+              return (
+                <Box key={field.id} sx={{ mb: 2 }}>
+                  <Typography variant="subtitle1">
+                    <strong>{field.label}:</strong> {displayValue}
+                  </Typography>
+                </Box>
+              );
+            })
+          ) : (
+            <Typography variant="body1">No custom fields available.</Typography>
           )}
         </Box>
         <Button variant="contained" onClick={() => navigate(-1)}>
