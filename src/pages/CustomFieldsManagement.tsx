@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   TextField,
   Button,
@@ -34,6 +35,7 @@ import { CustomField } from '../types';
 import useCustomFields from '../hooks/useCustomFields';
 
 const CustomFieldsManagement: React.FC = () => {
+  const navigate = useNavigate();
   const {
     customFields,
     loading: loadingCustomFields,
@@ -147,6 +149,7 @@ const CustomFieldsManagement: React.FC = () => {
         <Button variant="contained" onClick={handleAddNew}>
           Add New Custom Field
         </Button>
+        <Button onClick={() => navigate(-1)}>Back</Button>
       </Stack>
       <Dialog
         open={isDialogOpen}

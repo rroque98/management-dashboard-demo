@@ -125,6 +125,7 @@ const AddPatient: React.FC = () => {
             <Button type="submit" variant="contained" disabled={submitting}>
               {submitting ? <CircularProgress size={24} /> : 'Add Patient'}
             </Button>
+            <Button onClick={() => navigate(-1)}>Back</Button>
             {error && (
               <Typography color="error" align="center">
                 {error}

@@ -177,6 +177,7 @@ const EditPatient: React.FC = () => {
             <Button type="submit" variant="contained" disabled={submitting}>
               {submitting ? <CircularProgress size={24} /> : 'Update Patient'}
             </Button>
+            <Button onClick={() => navigate(-1)}>Back</Button>
             {error && (
               <Typography color="error" align="center">
                 {error}
