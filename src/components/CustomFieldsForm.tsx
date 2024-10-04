@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import { useFormContext, Controller } from 'react-hook-form';
 import useCustomFields from '../hooks/useCustomFields';
+import { Patient } from '../types';
 
 const CustomFieldsForm: React.FC = () => {
   const {
@@ -22,7 +23,7 @@ const CustomFieldsForm: React.FC = () => {
     register,
     control,
     formState: { errors },
-  } = useFormContext();
+  } = useFormContext<Pick<Patient, 'customFieldValues'>>();
 
   if (loadingCustomFields) {
     return <CircularProgress size={24} />;
@@ -47,7 +48,7 @@ const CustomFieldsForm: React.FC = () => {
       </Typography>
       <Stack spacing={3}>
         {customFields.map((field) => {
-          const fieldName = `customFieldValues.${field.id}`;
+          const fieldName = `customFieldValues.${field.id}` as const;
           const errorMessage = errors?.customFieldValues?.[field.id]?.message;
 
           switch (field.fieldType) {
