@@ -15,9 +15,11 @@ import AddressForm from '../components/AddressForm';
 import { Patient } from '../types';
 import { generateUUID } from '../utils';
 import CustomFieldsForm from '../components/CustomFieldsForm';
+import { useNotification } from '../contexts/NotificationContext';
 
 const EditPatient: React.FC = () => {
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,10 +83,12 @@ const EditPatient: React.FC = () => {
       };
 
       await updatePatient(updatedPatientData);
+      showNotification('Patient updated successfully!', 'success');
       navigate('/');
     } catch (error) {
       console.error('Failed to update patient:', error);
       setError('Failed to update patient. Please try again.');
+      showNotification('Failed to update patient.', 'error');
     } finally {
       setSubmitting(false);
     }

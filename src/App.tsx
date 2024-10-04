@@ -7,20 +7,23 @@ import EditPatient from './pages/EditPatient';
 import PatientDetails from './pages/PatientDetails';
 import CustomFieldsManagement from './pages/CustomFieldsManagement';
 import './App.css';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 const App: React.FC = () => {
   return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<PatientTable />} />
-          <Route path="/add" element={<AddPatient />} />
-          <Route path="/edit/:id" element={<EditPatient />} />
-          <Route path="/details/:id" element={<PatientDetails />} />
-          <Route path="/custom-fields" element={<CustomFieldsManagement />} />
-        </Routes>
-      </Layout>
-    </Router>
+    <NotificationProvider>
+      <Router>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<PatientTable />} />
+            <Route path="/add" element={<AddPatient />} />
+            <Route path="/edit/:id" element={<EditPatient />} />
+            <Route path="/details/:id" element={<PatientDetails />} />
+            <Route path="/custom-fields" element={<CustomFieldsManagement />} />
+          </Routes>
+        </Layout>
+      </Router>
+    </NotificationProvider>
   );
 };
 

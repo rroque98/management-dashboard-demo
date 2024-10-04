@@ -33,9 +33,11 @@ import {
 } from '../firebase/customFields';
 import { CustomField } from '../types';
 import useCustomFields from '../hooks/useCustomFields';
+import { useNotification } from '../contexts/NotificationContext';
 
 const CustomFieldsManagement: React.FC = () => {
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
   const {
     customFields,
     loading: loadingCustomFields,
@@ -58,8 +60,10 @@ const CustomFieldsManagement: React.FC = () => {
     try {
       if (editingField) {
         await updateCustomField({ ...editingField, ...data });
+        showNotification('Custom field updated successfully!', 'success');
       } else {
         await addCustomField({ ...data });
+        showNotification('Custom field added successfully!', 'success');
       }
       await refetchCustomFields();
       reset();
@@ -67,6 +71,7 @@ const CustomFieldsManagement: React.FC = () => {
       setEditingField(null);
     } catch (error) {
       console.error('Error saving custom field:', error);
+      showNotification('Error saving custom field.', 'error');
     }
   };
 

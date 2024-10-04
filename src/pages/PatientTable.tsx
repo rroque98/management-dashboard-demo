@@ -11,9 +11,9 @@ import { Link } from 'react-router-dom';
 import { Address, Patient } from '../types';
 import usePatients from '../hooks/usePatients';
 import useCustomFields from '../hooks/useCustomFields';
-import SuccessSnackbar from '../components/SuccessSnackbar';
 import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
 import { deletePatient } from '../firebase/patients';
+import { useNotification } from '../contexts/NotificationContext';
 
 const PatientTable: React.FC = () => {
   const {
@@ -36,12 +36,8 @@ const PatientTable: React.FC = () => {
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>(
-    'success'
-  );
   const [deleting, setDeleting] = useState(false);
+  const { showNotification } = useNotification();
 
   const handleDeleteClick = (patient: Patient) => {
     setSelectedPatient(patient);
@@ -54,16 +50,12 @@ const PatientTable: React.FC = () => {
     setDeleting(true);
     try {
       await deletePatient(selectedPatient.id);
-      setSnackbarMessage('Patient deleted successfully.');
-      setSnackbarSeverity('success');
-      setOpenSnackbar(true);
+      showNotification('Patient deleted successfully!', 'success');
       setOpenDeleteDialog(false);
       setSelectedPatient(null);
       refetchPatients();
     } catch (error: any) {
-      setSnackbarMessage(error.message || 'Failed to delete patient.');
-      setSnackbarSeverity('error');
-      setOpenSnackbar(true);
+      showNotification(error.message || 'Failed to delete patient.', 'error');
       setOpenDeleteDialog(false);
       setSelectedPatient(null);
     } finally {
@@ -74,16 +66,6 @@ const PatientTable: React.FC = () => {
   const handleCancelDelete = () => {
     setOpenDeleteDialog(false);
     setSelectedPatient(null);
-  };
-
-  const handleCloseSnackbar = (
-    _?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setOpenSnackbar(false);
   };
 
   const standardColumns: GridColDef[] = [
@@ -257,12 +239,6 @@ const PatientTable: React.FC = () => {
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
         deleting={deleting}
-      />
-      <SuccessSnackbar
-        open={openSnackbar}
-        message={snackbarMessage}
-        severity={snackbarSeverity}
-        onClose={handleCloseSnackbar}
       />
     </Box>
   );

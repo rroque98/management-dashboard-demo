@@ -13,11 +13,13 @@ import {
 import AddressForm from '../components/AddressForm';
 import CustomFieldsForm from '../components/CustomFieldsForm';
 import { addPatient } from '../firebase/patients';
+import { useNotification } from '../contexts/NotificationContext';
 import { Patient } from '../types';
 import { generateUUID } from '../utils';
 
 const AddPatient: React.FC = () => {
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,10 +62,12 @@ const AddPatient: React.FC = () => {
         addresses: addressesWithId,
       };
       await addPatient(patientData);
+      showNotification('Patient Added successfully!', 'success');
       navigate('/');
     } catch (error) {
       console.error('Failed to add patient:', error);
       setError('Failed to add patient. Please try again.');
+      showNotification('Failed to add patient.', 'error');
     }
     setSubmitting(false);
   };
