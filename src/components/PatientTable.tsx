@@ -8,7 +8,7 @@ import {
   Typography,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { Address } from '../types';
+import { Address, Patient } from '../types';
 import usePatients from '../hooks/usePatients';
 import useCustomFields from '../hooks/useCustomFields';
 
@@ -36,14 +36,15 @@ const PatientTable: React.FC = () => {
   };
 
   const standardColumns: GridColDef[] = [
-    { field: 'firstName', headerName: 'First', flex: 1 },
-    { field: 'middleName', headerName: 'Middle', flex: 1 },
-    { field: 'lastName', headerName: 'Last', flex: 1 },
-    { field: 'dob', headerName: 'DOB', flex: 1 },
-    { field: 'status', headerName: 'Status', flex: 1 },
+    { field: 'firstName', headerName: 'First', minWidth: 100, flex: 1 },
+    { field: 'middleName', headerName: 'Middle', minWidth: 75, flex: 1 },
+    { field: 'lastName', headerName: 'Last', minWidth: 100, flex: 1 },
+    { field: 'dob', headerName: 'DOB', minWidth: 100, flex: 1 },
+    { field: 'status', headerName: 'Status', minWidth: 100, flex: 1 },
     {
       field: 'addresses',
       headerName: 'Address',
+      minWidth: 150,
       flex: 2,
       valueGetter: (params: Address[]) => {
         const address = params[0];
@@ -98,6 +99,12 @@ const PatientTable: React.FC = () => {
         flex: 1,
         type: 'string',
         renderCell: renderCell,
+        valueGetter: (_, row) => {
+          const value = row?.customFieldValues
+            ? row?.customFieldValues?.[field.id]
+            : null;
+          return value !== null && value !== undefined ? value : '';
+        },
       };
     });
   }, [customFields]);
@@ -117,6 +124,7 @@ const PatientTable: React.FC = () => {
           View Details
         </Button>
       ),
+      minWidth: 150,
       flex: 2,
     },
     {
@@ -144,15 +152,16 @@ const PatientTable: React.FC = () => {
           </Button>
         </Grid2>
       ),
+      minWidth: 175,
       flex: 3,
     },
   ];
 
   const columns: GridColDef[] = [
     ...standardColumns,
-    ...customColumns,
     ...actionColumns,
-  ];
+    ...customColumns,
+  ].map((c) => ({ minWidth: 100, ...c }));
 
   if (loadingPatients || loadingCustomFields) {
     return (
@@ -171,17 +180,23 @@ const PatientTable: React.FC = () => {
   }
 
   return (
-    <div style={{ height: 600, width: '100%' }}>
+    <Box sx={{ height: 600, width: '100%', overflowX: 'auto' }}>
       <DataGrid
         rows={patients}
         columns={columns}
+        getRowId={(row: Patient) => row.id}
         pagination
         paginationMode="client"
         paginationModel={paginationModel}
         onPaginationModelChange={(newModel) => setPaginationModel(newModel)}
         pageSizeOptions={[10, 25, 50, 100]}
+        sx={{
+          '& .MuiDataGrid-root': {
+            overflowX: 'auto',
+          },
+        }}
       />
-    </div>
+    </Box>
   );
 };
 
