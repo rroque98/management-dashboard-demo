@@ -25,3 +25,10 @@ dist-ssr
 
 # Environment variables
 .env
+.env.local
+.env.staging
+.env.production
+
+# TypeScript incremental build files
+tsconfig.app.tsbuildinfo
+tsconfig.node.tsbuildinfo
