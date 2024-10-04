@@ -31,7 +31,7 @@ import {
   deleteCustomField,
 } from '../firebase/customFields';
 import { CustomField } from '../types';
-import useCustomFields from '../hooks/customFields';
+import useCustomFields from '../hooks/useCustomFields';
 
 const CustomFieldsManagement: React.FC = () => {
   const {

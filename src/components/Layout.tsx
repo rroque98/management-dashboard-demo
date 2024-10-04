@@ -17,7 +17,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             Add Patient
           </Button>
           <Button color="inherit" component={Link} to="/custom-fields">
-            Add Custom Fields
+            Manage Custom Fields
           </Button>
         </Toolbar>
       </AppBar>

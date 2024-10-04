@@ -9,7 +9,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { useFormContext, Controller } from 'react-hook-form';
-import useCustomFields from '../hooks/customFields';
+import useCustomFields from '../hooks/useCustomFields';
 
 const CustomFieldsForm: React.FC = () => {
   const {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import {
   Box,
@@ -9,7 +9,8 @@ import {
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { Address } from '../types';
-import usePatients from '../hooks/patients';
+import usePatients from '../hooks/usePatients';
+import useCustomFields from '../hooks/useCustomFields';
 
 const PatientTable: React.FC = () => {
   const {
@@ -18,12 +19,18 @@ const PatientTable: React.FC = () => {
     error: patientsError,
   } = usePatients();
 
+  const {
+    customFields = [],
+    loading: loadingCustomFields,
+    error: customFieldsError,
+  } = useCustomFields();
+
   const handleDelete = (id: number) => {
     // TODO: Implement delete. Should deleting action even be a part of the main dashboard view?
     console.log('deleting patient with id: ', id);
   };
 
-  const columns: GridColDef[] = [
+  const standardColumns: GridColDef[] = [
     { field: 'firstName', headerName: 'First', flex: 1 },
     { field: 'middleName', headerName: 'Middle', flex: 1 },
     { field: 'lastName', headerName: 'Last', flex: 1 },
@@ -43,6 +50,54 @@ const PatientTable: React.FC = () => {
           : 'N/A';
       },
     },
+  ];
+
+  // Generate custom columns based on custom fields
+  const customColumns: GridColDef[] = useMemo(() => {
+    return customFields.map((field) => {
+      let renderCell: GridColDef['renderCell'] | undefined = undefined;
+
+      switch (field.fieldType) {
+        case 'boolean':
+          renderCell = (params) => {
+            const value = params?.row?.customFieldValues?.[field.id];
+            return value !== null && value !== undefined
+              ? value
+                ? 'Yes'
+                : 'No'
+              : 'N/A';
+          };
+          break;
+        case 'date':
+          renderCell = (params) => {
+            const value = params.row.customFieldValues
+              ? params.row.customFieldValues[field.id]
+              : null;
+            return value ? new Date(value).toLocaleDateString() : 'N/A';
+          };
+          break;
+        default:
+          renderCell = (params) => {
+            const value = params.row.customFieldValues
+              ? params.row.customFieldValues[field.id]
+              : null;
+            return value !== null && value !== undefined
+              ? value.toString()
+              : 'N/A';
+          };
+      }
+
+      return {
+        field: field.id,
+        headerName: field.label,
+        flex: 1,
+        type: 'string',
+        renderCell: renderCell,
+      };
+    });
+  }, [customFields]);
+
+  const actionColumns: GridColDef[] = [
     {
       field: 'details',
       headerName: 'Details',
@@ -57,7 +112,7 @@ const PatientTable: React.FC = () => {
           View Details
         </Button>
       ),
-      flex: 1,
+      flex: 2,
     },
     {
       field: 'actions',
@@ -84,11 +139,17 @@ const PatientTable: React.FC = () => {
           </Button>
         </Grid2>
       ),
-      flex: 1,
+      flex: 3,
     },
   ];
 
-  if (loadingPatients) {
+  const columns: GridColDef[] = [
+    ...standardColumns,
+    ...customColumns,
+    ...actionColumns,
+  ];
+
+  if (loadingPatients || loadingCustomFields) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
         <CircularProgress />
@@ -96,10 +157,10 @@ const PatientTable: React.FC = () => {
     );
   }
 
-  if (patientsError) {
+  if (patientsError || customFieldsError) {
     return (
       <Typography color="error" align="center" sx={{ marginTop: 4 }}>
-        {patientsError}
+        {patientsError || customFieldsError}
       </Typography>
     );
   }
