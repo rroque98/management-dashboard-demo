@@ -11,7 +11,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             Patient Management Dashboard Demo
           </Typography>
           <Button color="inherit" component={Link} to="/">
-            Home
+            Patient List
           </Button>
           <Button color="inherit" component={Link} to="/add">
             Add Patient

@@ -11,8 +11,8 @@ import { Link } from 'react-router-dom';
 import { Address, Patient } from '../types';
 import usePatients from '../hooks/usePatients';
 import useCustomFields from '../hooks/useCustomFields';
-import SuccessSnackbar from './SuccessSnackbar';
-import DeleteConfirmationDialog from './DeleteConfirmationDialog';
+import SuccessSnackbar from '../components/SuccessSnackbar';
+import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
 import { deletePatient } from '../firebase/patients';
 
 const PatientTable: React.FC = () => {
@@ -210,8 +210,8 @@ const PatientTable: React.FC = () => {
 
   const columns: GridColDef[] = [
     ...standardColumns,
-    ...actionColumns,
     ...customColumns,
+    ...actionColumns,
   ].map((c) => ({ minWidth: 100, ...c }));
 
   if (loadingPatients || loadingCustomFields) {

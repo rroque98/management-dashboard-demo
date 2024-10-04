@@ -1,14 +1,24 @@
 import React from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
-import Home from './pages/Home';
+import PatientTable from './pages/PatientTable';
+import AddPatient from './pages/AddPatient';
+import EditPatient from './pages/EditPatient';
+import PatientDetails from './pages/PatientDetails';
+import CustomFieldsManagement from './pages/CustomFieldsManagement';
 import './App.css';
 
 const App: React.FC = () => {
   return (
     <Router>
       <Layout>
-        <Home />
+        <Routes>
+          <Route path="/" element={<PatientTable />} />
+          <Route path="/add" element={<AddPatient />} />
+          <Route path="/edit/:id" element={<EditPatient />} />
+          <Route path="/details/:id" element={<PatientDetails />} />
+          <Route path="/custom-fields" element={<CustomFieldsManagement />} />
+        </Routes>
       </Layout>
     </Router>
   );
